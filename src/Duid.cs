@@ -474,6 +474,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <param name="format"></param>
     /// <param name="provider"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public bool TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null)
     {
         if (destination.Length < StringLength)
@@ -527,6 +528,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <param name="destination"></param>
     /// <param name="charsWritten"></param>
     /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public bool TryFormatUtf8(Span<byte> destination, out int charsWritten)
     {
         if (destination.Length < StringLength)
@@ -697,7 +699,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <param name="lo"></param>
     /// <param name="d"></param>
     /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static uint DivMod128ByConst(ref ulong hi, ref ulong lo, uint d)
     {
         // Divide a 128-bit integer (hi:lo) by 32-bit d.
