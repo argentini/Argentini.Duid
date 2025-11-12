@@ -154,6 +154,57 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     private static readonly sbyte[] RevMap = CreateRevMap(Alphabet);
     private static readonly byte[] AlphabetBytes = Encoding.ASCII.GetBytes(Alphabet);
     
+    private const int Radix3 = 62 * 62 * 62; // 238,328
+
+    // Triplet tables: index -> three chars / bytes for base62^3 chunk
+    // ~1.36 MiB for chars + ~0.68 MiB for bytes; built once.
+    private static readonly char[] TripletsChars = BuildTripletsChars(Alphabet);
+    private static readonly byte[] TripletsUtf8  = BuildTripletsUtf8(AlphabetBytes);
+
+    /// <summary>
+    /// Build the triplet character table for base62^3 chunks.
+    /// </summary>
+    /// <param name="alphabet"></param>
+    /// <returns></returns>
+    private static char[] BuildTripletsChars(string alphabet)
+    {
+        var tbl = new char[Radix3 * 3]; // flattened [i*3 + 0..2]
+        var k = 0;
+        
+        for (var a = 0; a < 62; a++)
+        for (var b = 0; b < 62; b++)
+        for (var c = 0; c < 62; c++)
+        {
+            tbl[k++] = alphabet[a];
+            tbl[k++] = alphabet[b];
+            tbl[k++] = alphabet[c];
+        }
+
+        return tbl;
+    }
+
+    /// <summary>
+    /// Build the triplet UTF-8 byte table for base62^3 chunks.
+    /// </summary>
+    /// <param name="alphabetBytes"></param>
+    /// <returns></returns>
+    private static byte[] BuildTripletsUtf8(byte[] alphabetBytes)
+    {
+        var tbl = new byte[Radix3 * 3];
+        var k = 0;
+        
+        for (var a = 0; a < 62; a++)
+        for (var b = 0; b < 62; b++)
+        for (var c = 0; c < 62; c++)
+        {
+            tbl[k++] = alphabetBytes[a];
+            tbl[k++] = alphabetBytes[b];
+            tbl[k++] = alphabetBytes[c];
+        }
+        
+        return tbl;
+    }
+    
     /// <summary>
     /// Create a reverse mapping from ASCII char to Base62 index.
     /// </summary>
@@ -462,23 +513,31 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
             return false;
         }
 
-        // Work with 128-bit payload in registers
+        // Work with 128-bit in registers
         var hi = _payloadHi;
         var lo = _payloadLo;
 
-        // First digit: r = P % 52; P = P / 52
+        // First digit (letter): r = P % 52; P = P / 52
         var r = DivMod128ByConst(ref hi, ref lo, 52);
+        
+        destination[0] = Alphabet[FirstDigitLetterIndices[(int)r]];
 
-        // Tail digits (positions 21..1): repeated div by 62
-        for (var i = StringLength - 1; i >= 1; i--)
+        // Tail: 21 digits => 7 groups of 3 (base 62^3)
+        // Fill from the end toward the front.
+        var pos = StringLength;
+        
+        for (var g = 0; g < 7; g++)
         {
-            var rem = DivMod128ByConst(ref hi, ref lo, 62);
-            destination[i] = Alphabet[(int)rem];
+            var rem = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var idx = (int)rem * 3;
+
+            destination[--pos] = TripletsChars[idx + 2];
+            destination[--pos] = TripletsChars[idx + 1];
+            destination[--pos] = TripletsChars[idx + 0];
         }
 
-        destination[0] = Alphabet[FirstDigitLetterIndices[(int)r]];
         charsWritten = StringLength;
-
+        
         return true;
     }
     
@@ -507,23 +566,27 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
             return false;
         }
 
-        // Work with 128-bit payload in registers
         var hi = _payloadHi;
         var lo = _payloadLo;
 
-        // First digit: r = P % 52; P = P / 52
         var r = DivMod128ByConst(ref hi, ref lo, 52);
+        
+        destination[0] = AlphabetBytes[FirstDigitLetterIndices[(int)r]];
 
-        // Tail digits (positions 21..1): repeated div by 62
-        for (var i = StringLength - 1; i >= 1; i--)
+        var pos = StringLength;
+        
+        for (var g = 0; g < 7; g++)
         {
-            var rem = DivMod128ByConst(ref hi, ref lo, 62);
-            destination[i] = AlphabetBytes[(int)rem];
+            var rem = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var idx = (int)rem * 3;
+
+            destination[--pos] = TripletsUtf8[idx + 2];
+            destination[--pos] = TripletsUtf8[idx + 1];
+            destination[--pos] = TripletsUtf8[idx + 0];
         }
 
-        destination[0] = AlphabetBytes[FirstDigitLetterIndices[(int)r]];
         charsWritten = StringLength;
-     
+
         return true;
     }
     
