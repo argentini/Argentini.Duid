@@ -428,13 +428,12 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <exception cref="FormatException"></exception>
     public override string ToString()
     {
-        Span<char> c = stackalloc char[StringLength];
-
-        _ = TryFormat(c, out _);
-        
-        return new string(c);
+        return string.Create(StringLength, this, static (span, self) =>
+        {
+            _ = self.TryWriteChars(span, out _);
+        });
     }
-
+    
     /// <summary>
     /// Convert to string representation with format/provider (ignored).
     /// </summary>
@@ -461,31 +460,26 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
             return false;
         }
 
-        // buf := payload big-endian (128-bit P)
-        Span<byte> buf = stackalloc byte[ByteLength];
-        BinaryPrimitives.WriteUInt64BigEndian(buf[..8], _payloadHi);
-        BinaryPrimitives.WriteUInt64BigEndian(buf[8..],  _payloadLo);
+        // Work with 128-bit payload in registers
+        var hi = _payloadHi;
+        var lo = _payloadLo;
 
-        // Compute r = P % 52 and Q = P / 52
-        var r = DivModBigEndian(buf, 52);
+        // First digit: r = P % 52; P = P / 52
+        var r = DivMod128ByConst(ref hi, ref lo, 52);
 
-        // Tail digits (positions 21..1)
+        // Tail digits (positions 21..1): repeated div by 62
         for (var i = StringLength - 1; i >= 1; i--)
         {
-            var rem = DivModBigEndian(buf, 62);
-
+            var rem = DivMod128ByConst(ref hi, ref lo, 62);
             destination[i] = Alphabet[(int)rem];
         }
 
-        // First char (letter only)
-        int firstIndex = FirstDigitLetterIndices[(int)r];
-
-        destination[0] = Alphabet[firstIndex];
+        destination[0] = Alphabet[FirstDigitLetterIndices[(int)r]];
         charsWritten = StringLength;
-        
+
         return true;
     }
-
+    
     bool ISpanFormattable.TryFormat(Span<char> destination, out int charsWritten, ReadOnlySpan<char> format, IFormatProvider? provider)
         => TryFormat(destination, out charsWritten, format, provider);
 
@@ -665,8 +659,52 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
 
     #endregion
     
-    #region Big-endian small "bignum" helpers (byte[16])
+    #region Helpers
 
+    /// <summary>
+    /// Fast 128-bit division by constant 32-bit divisor.
+    /// </summary>
+    /// <param name="hi"></param>
+    /// <param name="lo"></param>
+    /// <param name="d"></param>
+    /// <returns></returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static uint DivMod128ByConst(ref ulong hi, ref ulong lo, uint d)
+    {
+        // Divide a 128-bit integer (hi:lo) by 32-bit d.
+        // Processes four 32-bit limbs: hiHi, hiLo, loHi, loLo.
+        ulong rem = 0;
+
+        var limb = hi >> 32;
+        var cur  = (rem << 32) | limb;
+        var q0   = cur / d;
+        
+        rem        = cur - q0 * d;
+        limb = (uint)hi;
+        cur  = (rem << 32) | limb;
+
+        var q1 = cur / d;
+        
+        rem      = cur - q1 * d;
+        limb = lo >> 32;
+        cur  = (rem << 32) | limb;
+
+        var q2 = cur / d;
+        
+        rem      = cur - q2 * d;
+
+        limb = (uint)lo;
+        cur  = (rem << 32) | limb;
+        
+        var q3 = cur / d;
+        
+        rem      = cur - q3 * d;
+        hi = (q0 << 32) | q1;
+        lo = (q2 << 32) | q3;
+
+        return (uint)rem;
+    }
+    
     /// <summary>
     /// Helper to compute: be = be * mul + add
     /// </summary>
