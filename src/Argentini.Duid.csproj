@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <AssemblyVersion>1.0.1</AssemblyVersion>
-        <FileVersion>1.0.1</FileVersion>
-        <PackageVersion>1.0.1</PackageVersion>
+        <AssemblyVersion>1.0.2</AssemblyVersion>
+        <FileVersion>1.0.2</FileVersion>
+        <PackageVersion>1.0.2</PackageVersion>
         <PackageId>argentini.duid</PackageId>
         <Authors>Michael Argentini</Authors>
         <Company>Argentini Unlimited, Ltd.</Company>
@@ -19,7 +19,7 @@
         <PackageProjectUrl>https://github.com/argentini/Argentini.Duid</PackageProjectUrl>
         <RepositoryUrl>https://github.com/argentini/Argentini.Duid</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageReleaseNotes>Initial release</PackageReleaseNotes>
+        <PackageReleaseNotes>Updated the README</PackageReleaseNotes>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageIcon>nuget-icon.png</PackageIcon>
