@@ -242,38 +242,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
         return map;
     }    
     
-    private static readonly byte[] FirstDigitLetterIndices = BuildLetterIndices(Alphabet); // length 52
     private static readonly sbyte[] FirstDigitRankByIndex = BuildLetterRankByIndex(Alphabet); // map 0..61 -> 0..51 or -1
-
-    /// <summary>
-    /// Create an array of indices in the Alphabet that are letters (A-Z, a-z).
-    /// </summary>
-    /// <param name="alphabet"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentException"></exception>
-    private static byte[] BuildLetterIndices(string alphabet)
-    {
-        Span<byte> tmp = stackalloc byte[62];
-        
-        var k = 0;
-        
-        for (var i = 0; i < alphabet.Length; i++)
-        {
-            var ch = alphabet[i];
-            
-            if (ch is >= 'A' and <= 'Z' or >= 'a' and <= 'z')
-                tmp[k++] = (byte)i;
-        }
-
-        if (k != 52)
-            throw new ArgumentException("Alphabet must contain exactly 52 letters.");
-        
-        var arr = new byte[52];
-        
-        tmp[..52].CopyTo(arr);
-        
-        return arr;
-    }
 
     /// <summary>
     /// Build a mapping from Alphabet index to letter rank (0..51) or -1 if not a letter.
@@ -520,7 +489,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
         // First digit (letter): r = P % 52; P = P / 52
         var r = DivMod128ByConst(ref hi, ref lo, 52);
         
-        destination[0] = Alphabet[FirstDigitLetterIndices[(int)r]];
+        destination[0] = Alphabet[(int)r];
 
         // Tail: 21 digits => 7 groups of 3 (base 62^3)
         // Fill from the end toward the front.
@@ -571,7 +540,7 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
 
         var r = DivMod128ByConst(ref hi, ref lo, 52);
         
-        destination[0] = AlphabetBytes[FirstDigitLetterIndices[(int)r]];
+        destination[0] = AlphabetBytes[(int)r];
 
         var pos = StringLength;
         
