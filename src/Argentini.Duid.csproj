@@ -4,12 +4,13 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup>
-        <AssemblyVersion>1.0.2</AssemblyVersion>
-        <FileVersion>1.0.2</FileVersion>
-        <PackageVersion>1.0.2</PackageVersion>
+        <AssemblyVersion>1.0.3</AssemblyVersion>
+        <FileVersion>1.0.3</FileVersion>
+        <PackageVersion>1.0.3</PackageVersion>
         <PackageId>argentini.duid</PackageId>
         <Authors>Michael Argentini</Authors>
         <Company>Argentini Unlimited, Ltd.</Company>
@@ -19,7 +20,7 @@
         <PackageProjectUrl>https://github.com/argentini/Argentini.Duid</PackageProjectUrl>
         <RepositoryUrl>https://github.com/argentini/Argentini.Duid</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageReleaseNotes>Updated the README</PackageReleaseNotes>
+        <PackageReleaseNotes>Optimized ToString() performance</PackageReleaseNotes>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageIcon>nuget-icon.png</PackageIcon>

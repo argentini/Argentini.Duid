@@ -205,6 +205,60 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
         return tbl;
     }
     
+    private static readonly uint[] TripHead32 = BuildTripletHead32(Alphabet);
+    private static readonly ushort[] TripTail16 = BuildTripletTail16(Alphabet);
+
+    /// <summary>
+    /// Build the triplet head (first two chars) 32-bit table for base62^3 chunks.
+    /// </summary>
+    /// <param name="alphabet"></param>
+    /// <returns></returns>
+    private static uint[] BuildTripletHead32(string alphabet)
+    {
+        var t = new uint[Radix3];
+        var k = 0;
+        
+        for (var a = 0; a < 62; a++)
+        for (var b = 0; b < 62; b++)
+        for (var c = 0; c < 62; c++, k++)
+        {
+            var two = alphabet[a] | ((uint)alphabet[b] << 16);
+            t[k] = two;
+        }
+        
+        return t;
+    }
+
+    /// <summary>
+    ///  Build the triplet tail (third char) 16-bit table for base62^3 chunks.
+    /// </summary>
+    /// <param name="alphabet"></param>
+    /// <returns></returns>
+    private static ushort[] BuildTripletTail16(string alphabet)
+    {
+        var t = new ushort[Radix3];
+        var k = 0;
+        
+        for (var a = 0; a < 62; a++)
+        for (var b = 0; b < 62; b++)
+        for (var c = 0; c < 62; c++, k++)
+            t[k] = alphabet[c];
+        
+        return t;
+    }
+
+    /// <summary>
+    /// Emit a triplet into destination char pointer.
+    /// </summary>
+    /// <param name="dst"></param>
+    /// <param name="idx"></param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static unsafe void EmitTriplet(char* dst, int idx)
+    {
+        *(uint*)dst = TripHead32[idx];
+        *(ushort*)(dst+2) = TripTail16[idx];
+    }
+    
     /// <summary>
     /// Create a reverse mapping from ASCII char to Base62 index.
     /// </summary>
@@ -450,10 +504,38 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <exception cref="FormatException"></exception>
     public override string ToString()
     {
-        return string.Create(StringLength, this, static (span, self) =>
+        unsafe
         {
-            _ = self.TryWriteChars(span, out _);
-        });
+            var s = new string('\0', StringLength);
+
+            ulong hi = _payloadHi, lo = _payloadLo;
+
+            var r  = DivMod128ByConst(ref hi, ref lo, 52);
+            var t6 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t5 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t4 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t3 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t2 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t1 = DivMod128ByConst(ref hi, ref lo, Radix3);
+            var t0 = DivMod128ByConst(ref hi, ref lo, Radix3);
+
+            fixed (char* pd = s)
+            {
+                // r is a rank 0..51 -> map to actual alphabet index
+                pd[0] = Alphabet[(int)r];
+
+                // tripletIndex is just (int)tN (NO *3 here)
+                EmitTriplet(pd +  1, (int)t0);
+                EmitTriplet(pd +  4, (int)t1);
+                EmitTriplet(pd +  7, (int)t2);
+                EmitTriplet(pd + 10, (int)t3);
+                EmitTriplet(pd + 13, (int)t4);
+                EmitTriplet(pd + 16, (int)t5);
+                EmitTriplet(pd + 19, (int)t6);
+            }
+
+            return s;
+        }
     }
     
     /// <summary>
