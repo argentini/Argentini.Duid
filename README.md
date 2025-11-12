@@ -1,12 +1,33 @@
 # DUID: The high entropy, web-friendly, globally unique identifier
 
-DUID is a replacement for GUIDs (Globally Unique Identifiers) that are more compact, URL-safe, and JavaScript entity name-safe. 
-DUIDs are 22-character alphanumeric codes that always begin with a letter. Unlike GUID v4 there is no version code which means more entropy.
-They have no timestamp information, so they are not sortable (which also improves strength by eliminating predictability).
+DUID is a fully-featured replacement for GUIDs (Globally Unique Identifiers) that is more compact, web-friendly, and provides more entropy than GUIDs.
+I created this UUID type as a replacement for GUIDs in my projects, improving on GUID shortcomings.
 
-Under the hood, DUIDs are generated using the latest .NET cryptographic random number generator.
+I pronounce it *doo-id*, but it can also be pronounced like *dude*, which is by design :)
 
-**You can also find DUID on nuget.**
+**Key security features:**
+
+- Uses the latest .NET cryptographic random number generator
+- More entropy than GUID v4 (128 bits vs 122 bits)
+- No embedded timestamp (reduces predictability and improves strength)
+- Self-contained; does not use any packages
+
+**Usage features:**
+
+- High performance, with minimal allocations
+- 16 bytes in size; 22 characters as a string
+- Always starts with a letter (can be used as-is for programming language variable names)
+- URL-safe
+- Can be validated, parsed, and compared
+- Can be created from and converted to byte arrays
+- UTF-8 encoding support
+- JSON serialization support
+- TypeConverter support
+- Debug support (displays as string in debugger)
+
+## Nuget
+
+**Yes, you can also find DUID on nuget.** Look for the package named `argentini.duid`.
 
 ## Usage
 
@@ -21,8 +42,10 @@ There are a ton of overloads and extension methods for converting, validating, p
 Here are some examples:
 
 ```csharp
-var emptyDuid = Duid.Empty; // Represents an empty DUID (all zeros); "AAAAAAAAAAAAAAAAAAAAAA"
+// Represents an empty DUID (all zeros); "AAAAAAAAAAAAAAAAAAAAAA"
+var emptyDuid = Duid.Empty;
 
+// Get a string value for a DUID
 var duid = Duid.NewDuid();
 var duidString = duid.ToString();
 
