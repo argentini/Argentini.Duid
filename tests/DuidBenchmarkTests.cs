@@ -47,7 +47,7 @@ public class DuidBenchmarkTests(ITestOutputHelper testOutputHelper) : SharedTest
 
         Shared.OutputTotalTime();
     }
-    
+
     [Fact]
     public void GuidToString()
     {

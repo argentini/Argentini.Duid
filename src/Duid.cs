@@ -21,14 +21,16 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
 {
     #region Constants
 
-    private const int ByteLength   = 16; // 128-bit random payload only
-    private const int StringLength = 22; // ceil(log_62(2^128)) = 22
+    /// <summary>
+    /// Public constant for the canonical byte length of a DUID (16 bytes).
+    /// </summary>
+    public const int ByteLength   = 16;
 
     /// <summary>
     /// Public constant for the canonical text length of a DUID (22 chars).
     /// </summary>
-    public const int TextLength = StringLength;
-    
+    public const int StringLength = 22;
+
     #endregion
 
     #region Properties / Fields
@@ -350,13 +352,13 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// <returns></returns>
     public static bool TryParseUtf8(ReadOnlySpan<byte> utf8, out Duid id)
     {
-        if (utf8.Length != TextLength)
+        if (utf8.Length != StringLength)
         {
             id = default;
             return false;
         }
         
-        Span<char> tmp = stackalloc char[TextLength];
+        Span<char> tmp = stackalloc char[StringLength];
         
         for (var i = 0; i < utf8.Length; i++)
         {
@@ -495,41 +497,36 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     /// Format the DUID into UTF-8 bytes in the given destination span with zero allocations.
     /// </summary>
     /// <param name="destination"></param>
-    /// <param name="bytesWritten"></param>
+    /// <param name="charsWritten"></param>
     /// <returns></returns>
-    public bool TryFormatUtf8(Span<byte> destination, out int bytesWritten)
+    public bool TryFormatUtf8(Span<byte> destination, out int charsWritten)
     {
-        if (destination.Length < TextLength)
+        if (destination.Length < StringLength)
         {
-            bytesWritten = 0;
+            charsWritten = 0;
             return false;
         }
 
-        // buf := payload big-endian (128-bit P)
-        Span<byte> buf = stackalloc byte[ByteLength];
-        BinaryPrimitives.WriteUInt64BigEndian(buf[..8], _payloadHi);
-        BinaryPrimitives.WriteUInt64BigEndian(buf[8..],  _payloadLo);
+        // Work with 128-bit payload in registers
+        var hi = _payloadHi;
+        var lo = _payloadLo;
 
-        // Compute r = P % 52 and Q = P / 52
-        var r = DivModBigEndian(buf, 52);
+        // First digit: r = P % 52; P = P / 52
+        var r = DivMod128ByConst(ref hi, ref lo, 52);
 
-        // Tail digits (positions 21..1)
-        for (var i = TextLength - 1; i >= 1; i--)
+        // Tail digits (positions 21..1): repeated div by 62
+        for (var i = StringLength - 1; i >= 1; i--)
         {
-            var rem = DivModBigEndian(buf, 62);
-
+            var rem = DivMod128ByConst(ref hi, ref lo, 62);
             destination[i] = AlphabetBytes[(int)rem];
         }
 
-        // First char (letter only)
-        int firstIndex = FirstDigitLetterIndices[(int)r];
-
-        destination[0] = AlphabetBytes[firstIndex];
-        bytesWritten = TextLength;
-
+        destination[0] = AlphabetBytes[FirstDigitLetterIndices[(int)r]];
+        charsWritten = StringLength;
+     
         return true;
     }
-
+    
     /// <summary>
     /// Format the DUID into UTF-8 bytes in the given destination span with zero allocations.
     /// </summary>
@@ -826,9 +823,9 @@ public sealed class DuidJsonConverter : System.Text.Json.Serialization.JsonConve
 
     public override void Write(Utf8JsonWriter writer, Duid value, JsonSerializerOptions options)
     {
-        Span<byte> buf = stackalloc byte[Duid.TextLength];
+        Span<byte> buf = stackalloc byte[Duid.StringLength];
  
-        if (value.TryFormatUtf8(buf, out var written) == false || written != Duid.TextLength)
+        if (value.TryFormatUtf8(buf, out var written) == false || written != Duid.StringLength)
             throw new JsonException("Failed to format Duid.");
 
         writer.WriteStringValue(buf);

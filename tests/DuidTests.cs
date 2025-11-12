@@ -95,16 +95,16 @@ public class DuidTests(ITestOutputHelper testOutputHelper)
     {
         var id = Duid.NewDuid();
 
-        Span<char> chars = stackalloc char[Duid.TextLength];
+        Span<char> chars = stackalloc char[Duid.StringLength];
         Assert.True(id.TryWriteChars(chars, out var writtenChars));
-        Assert.Equal(Duid.TextLength, writtenChars);
+        Assert.Equal(Duid.StringLength, writtenChars);
 
         var s = new string(chars);
         Assert.Equal(id.ToString(), s);
 
-        Span<byte> bytes = stackalloc byte[Duid.TextLength];
+        Span<byte> bytes = stackalloc byte[Duid.StringLength];
         Assert.True(id.TryWriteUtf8(bytes, out var writtenBytes));
-        Assert.Equal(Duid.TextLength, writtenBytes);
+        Assert.Equal(Duid.StringLength, writtenBytes);
 
         var sFromUtf8 = Encoding.ASCII.GetString(bytes);
         Assert.Equal(id.ToString(), sFromUtf8);
@@ -115,11 +115,11 @@ public class DuidTests(ITestOutputHelper testOutputHelper)
     {
         var id = Duid.NewDuid();
 
-        Span<char> smallChars = stackalloc char[Duid.TextLength - 1];
+        Span<char> smallChars = stackalloc char[Duid.StringLength - 1];
         Assert.False(id.TryWriteChars(smallChars, out var cw));
         Assert.Equal(0, cw);
 
-        Span<byte> smallBytes = stackalloc byte[Duid.TextLength - 1];
+        Span<byte> smallBytes = stackalloc byte[Duid.StringLength - 1];
         Assert.False(id.TryWriteUtf8(smallBytes, out var bw));
         Assert.Equal(0, bw);
     }
