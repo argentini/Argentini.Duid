@@ -70,7 +70,22 @@ There is also a JSON converter for System.Text.Json that provides seamless seria
 var options = new JsonSerializerOptions();
 options.Converters.Add(new DuidJsonConverter());
 
-var duid = Duid.NewDuid();
-var json = JsonSerializer.Serialize(duid, options);
+var user = new User
+{
+    Id = Duid.NewDuid(),
+    FirstName = "Turd",
+    LastName = "Ferguson"
+};
+
+var json = JsonSerializer.Serialize(user, options);
+
+/*
+    json =
+    {
+        id: "xw5x7Kf6LmN3QvW1YbXcc0",
+        firstName: "Turd",
+        lastName: "Ferguson"
+    }
+*/
 ```
 This scratches the surface of what's available. Try using DUIDs in your project to explore all the features it provides.
