@@ -1,7 +1,6 @@
 # DUID: The high entropy, web-friendly, globally unique identifier
 
-DUID is a fully-featured replacement for GUIDs (Globally Unique Identifiers) that is more compact, web-friendly, and provides more entropy than GUIDs.
-I created this UUID type as a replacement for GUIDs in my projects, improving on GUID shortcomings.
+DUID is a fully-featured replacement for GUIDs (Globally Unique Identifiers). They are more compact, web-friendly, and provide more entropy than GUIDs. I created this UUID type as a replacement for GUIDs in my projects, improving on several GUID shortcomings.
 
 I pronounce it *doo-id*, but it can also be pronounced like *dude*, which is by design :)
 
