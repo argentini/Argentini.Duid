@@ -98,7 +98,7 @@ First, add the handler to your project:
 using System.Data;
 using Dapper;
 
-namespace BigCookbook.Api.Extensions;
+namespace MyApp.Api.Extensions;
 
 /// <summary>
 /// Handles mapping between Duid and database types for Dapper.
