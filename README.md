@@ -87,4 +87,50 @@ var json = JsonSerializer.Serialize(user, options);
     }
 */
 ```
+
+### Dapper data type handler
+
+Here's an example of adding DUID support to Dapper, where we convert DUIDs to strings and back again in a Postgres database.
+
+First, add the handler to your project:
+
+```csharp
+using System.Data;
+using Dapper;
+
+namespace BigCookbook.Api.Extensions;
+
+/// <summary>
+/// Handles mapping between Duid and database types for Dapper.
+/// </summary>
+public sealed class DuidTypeHandler : SqlMapper.TypeHandler<Duid>
+{
+    public override void SetValue(IDbDataParameter parameter, Duid value)
+    {
+        parameter.Value = value.ToString();
+    }
+
+    public override Duid Parse(object value)
+    {
+        return value switch
+        {
+            string s => Duid.Parse(s),
+            _ => throw new DataException($"Cannot convert {value.GetType().Name} to Duid")
+        };
+    }
+}
+```
+
+Then add the type handler near the top of your `Program.cs` file, before Dapper is used.
+
+```csharp
+...
+
+var builder = WebApplication.CreateBuilder(args);
+
+SqlMapper.AddTypeHandler(new DuidTypeHandler());
+
+...
+```
+
 This scratches the surface of what's available. Try using DUIDs in your project to explore all the features it provides.
