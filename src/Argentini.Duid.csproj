@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <AssemblyVersion>1.0.4</AssemblyVersion>
-        <FileVersion>1.0.4</FileVersion>
-        <PackageVersion>1.0.4</PackageVersion>
+        <AssemblyVersion>1.0.5</AssemblyVersion>
+        <FileVersion>1.0.5</FileVersion>
+        <PackageVersion>1.0.5</PackageVersion>
         <PackageId>argentini.duid</PackageId>
         <Authors>Michael Argentini</Authors>
         <Company>Argentini Unlimited, Ltd.</Company>
@@ -20,7 +20,7 @@
         <PackageProjectUrl>https://github.com/argentini/Argentini.Duid</PackageProjectUrl>
         <RepositoryUrl>https://github.com/argentini/Argentini.Duid</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageReleaseNotes>Multi-target .NET 9.0 and .NET 10.0</PackageReleaseNotes>
+        <PackageReleaseNotes>Added Duid.IsNullOrEmpty()</PackageReleaseNotes>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
         <PackageIcon>nuget-icon.png</PackageIcon>
