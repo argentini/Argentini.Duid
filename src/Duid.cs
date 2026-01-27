@@ -723,7 +723,15 @@ public readonly struct Duid : IEquatable<Duid>, IComparable<Duid>, IComparable, 
     {
         return s is not null && IsValidString(s.AsSpan());
     }
-    
+
+    /// <summary>
+    /// Validate if the given DUID is null or empty.
+    /// </summary>
+    public static bool IsNullOrEmpty(Duid? duid)
+    {
+        return duid is null || duid == Empty;
+    }
+
     #endregion
     
     #region Comparisons, operators

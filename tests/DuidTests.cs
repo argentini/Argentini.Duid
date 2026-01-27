@@ -236,6 +236,22 @@ public class DuidTests(ITestOutputHelper testOutputHelper)
         Assert.False(Duid.IsValidString(good + "X"));
     }
 
+    [Fact]
+    public void Duid_IsNullOrEmpty()
+    {
+	    Duid? duid = Duid.Empty;
+	    
+	    Assert.True(Duid.IsNullOrEmpty(duid));
+	    
+	    duid = null;
+	    
+	    Assert.True(Duid.IsNullOrEmpty(duid));
+	    
+	    duid = Duid.NewDuid();
+	    
+	    Assert.False(Duid.IsNullOrEmpty(duid));
+    }
+
     #endregion
     
     #region JSON Converter
